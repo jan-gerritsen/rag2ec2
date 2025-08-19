@@ -1,0 +1,13 @@
+[project]
+name = "rag2ec2"
+version = "0.1.0"
+description = "Deploy a ChromaDB and Ollama RAG application to AWS EC2 with Terraform."
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.1.1",
+    "flask-restful>=0.3.10",
+    "ollama>=0.5.1",
+    "pandas>=2.3.1",
+    "pandas-stubs==2.3.0.250703",
+    "waitress>=3.0.2",
+]

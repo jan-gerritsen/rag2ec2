@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+echo "Starting Flask application..."
+
+exec python flask_server.py --port 5001 --host 0.0.0.0 --debug --reload

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo "Starting Ollama server..."
+ollama serve &  # Start Ollama in the background
+
+echo "Ollama is ready, downloading the model..."
+
+ollama pull llama2

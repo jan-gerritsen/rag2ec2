@@ -1,0 +1,17 @@
+
+services:
+  ollama:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: ollama_server
+    restart: always
+    ports:
+      - "11434:11434" # Map the container's port 8080 to the host's port 8080
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+      - OLLAMA_MODELS=/mnt/model_data   #path to models directory
+      - OLLAMA_API_KEY=${OLLAMA_API_KEY} # from .env file
+    volumes:
+      - /mnt/model_data:/mnt/model_data # Mount a volume for persistent data storage

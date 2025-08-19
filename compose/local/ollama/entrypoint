@@ -1,0 +1,27 @@
+# entrypoint file for Ollama container
+# This file is used to set up the Ollama environment and run the Ollama server
+#!/bin/bash
+set -e
+echo "In Ollama entrypoint..."
+# Check if Ollama is installed
+if ! command -v ollama &> /dev/null; then
+    echo "Ollama is not installed. Please install Ollama first."
+    exit 1
+fi
+# Check if OLLAMA_API_KEY is set
+if [ -z "$OLLAMA_API_KEY" ]; then
+    echo "OLLAMA_API_KEY is not set. Please set it in your environment."
+    exit 1
+fi
+# Set the Ollama API key
+export OLLAMA_API_KEY="$OLLAMA_API_KEY"
+# Start the Ollama server
+echo "Starting Ollama server..."
+ollama serve --host localhost --port 11434 &
+# Wait for the server to start
+while ! nc -z localhost 11434; do
+    sleep 1
+done
+echo "Ollama server is running on http://localhost:11434"
+# Keep the script running to keep the server alive
+tail -f /dev/null

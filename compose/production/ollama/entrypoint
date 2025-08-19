@@ -1,0 +1,38 @@
+#!/bin/bash
+# entrypoint file for Ollama container
+# This file is used to set up the Ollama environment and run the Ollama server
+
+# set -e
+# echo "All environment variables:"
+# env
+#
+
+echo "In Ollama entrypoint..."
+# Check if Ollama is installed
+if ! command -v ollama &> /dev/null; then
+    echo "Ollama is not installed. Please install Ollama first."
+    exit 1
+fi
+# Check if OLLAMA_API_KEY is set
+if [ -z "$OLLAMA_API_KEY" ]; then
+    echo "OLLAMA_API_KEY is not set. Please set it in your environment."
+    exit 1
+fi
+
+# Start the Ollama server
+echo "Starting Ollama server..."
+ollama serve &
+# Wait for the server to start
+while ! curl -s http://localhost:11434/ > /dev/null; do
+    sleep 1
+done
+
+echo "Ollama server is running on http://0.0.0.0:11434"
+
+echo "Ollama is ready, downloading the model..."
+
+ollama pull llama2
+
+echo "Model downloaded successfully."
+
+wait # Just let the Ollama server run in the background

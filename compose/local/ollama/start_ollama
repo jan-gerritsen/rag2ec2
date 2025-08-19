@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ollama serve &
+OLLAMA_PID=$!
+
+sleep 5
+ollama pull mxbai-embed-large
+ollama pull llama3.2
+
+wait $OLLAMA_PID

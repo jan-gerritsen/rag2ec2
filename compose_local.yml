@@ -1,0 +1,42 @@
+volumes:
+  certs: {}
+
+services:
+  flask: &flask
+    env_file: ./.envs/.development
+    depends_on:
+      - ollama
+    build:
+      context: .
+      dockerfile: ./compose/local/flask/Dockerfile
+    ports:
+      - "5001:5001"
+    platform: linux/amd64
+    command: /start
+
+  nginx:
+    image: nginx:latest
+    env_file: ./.envs/.development
+    build:
+      context: ./compose/local/nginx
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'
+    depends_on:
+      - flask
+
+  ollama:
+    image: ollama/ollama:latest
+    env_file: ./.envs/.development
+    container_name: ollama
+    environment:
+      - OLLAMA_MODEL=llama2
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_data:/data
+    restart: unless-stopped
+
+
+
+

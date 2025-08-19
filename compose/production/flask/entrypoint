@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -o errexit
+set -euo pipefail
+set -o nounset
+set -x
+
+
+>&2 echo "About to exec: $@"
+
+exec "$@"
