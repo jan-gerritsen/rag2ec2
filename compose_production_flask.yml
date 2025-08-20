@@ -13,11 +13,13 @@ services:
       RAG_AWS_ACCOUNT_ID: ${TF_VAR_aws_account_id}
       RAG_AWS_DEFAULT_REGION: ${TF_VAR_aws_region}
     image: ${TF_VAR_aws_account_id}.dkr.ecr.${TF_VAR_aws_region}.amazonaws.com/flask:latest
+    container_name: flask_app
     command: /start
 
   nginx:
     image: nginx:latest
     env_file: ./.env
+    container_name: nginx
     ports:
       - '80:80'
       - '443:443'

@@ -4,6 +4,7 @@ volumes:
 services:
   flask: &flask
     env_file: ./.envs/.development
+    container_name: flask_app
     depends_on:
       - ollama
     build:
@@ -17,6 +18,7 @@ services:
   nginx:
     image: nginx:latest
     env_file: ./.envs/.development
+    container_name: nginx
     build:
       context: ./compose/local/nginx
       dockerfile: Dockerfile

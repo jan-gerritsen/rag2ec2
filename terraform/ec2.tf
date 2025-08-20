@@ -37,7 +37,7 @@ data "aws_iam_instance_profile" "ec2_ecr_profile" {
 
 resource "aws_volume_attachment" "ebs_flask_attach" {
   device_name = "/dev/xvdf"
-  volume_id   = var.aws_ebs_rag_volume_id # For model data
+  volume_id   = var.aws_ebs_rag_volume_id # For ssl cert data
   instance_id = aws_instance.flask_server.id
   force_detach = true
 }
@@ -63,6 +63,11 @@ resource "aws_instance" "flask_server" {
     destination = "/home/ec2-user/docker-compose.yml"
   }
 
+  provisioner "file" {
+    source      = "${path.module}/../compose_production_flask.yml"
+    destination = "/home/ec2-user/docker-compose.yml"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "mkdir -p /home/ec2-user/nginx"
@@ -76,8 +81,8 @@ resource "aws_instance" "flask_server" {
   }
 
   provisioner "file" {
-    source      = "${path.module}/../compose/production/nginx/default.conf"
-    destination = "/home/ec2-user/nginx.conf"
+    source      = "../.envs/.production"
+    destination = "/home/ec2-user/.env"
   }
 
   provisioner "remote-exec" {
@@ -98,7 +103,7 @@ resource "aws_instance" "flask_server" {
 user_data = <<-EOF
   #!/bin/bash
   yum update -y
-  yum install -y git docker python3-pip nginx
+  yum install -y git docker python3-pip nginx certbot
 
   service docker start
   usermod -a -G docker ec2-user
@@ -122,7 +127,7 @@ user_data = <<-EOF
   chmod 755 /home/ec2-user/certbot-webroot
 
   # Authenticate Docker to ECR
-  aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 223129826839.dkr.ecr.us-west-2.amazonaws.com
+  aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com
 
   sudo chown ec2-user:ec2-user /home/ec2-user/.env
   sudo chmod -R 755 /home/ec2-user/.env
@@ -134,13 +139,13 @@ user_data = <<-EOF
   # The ssl certificate and key files may not have survived the deploy process, so we will copy them again
   # we get them from an existing EBS volume
 
-  # sudo mkdir -p /mnt/persisteddata
+  sudo mkdir -p /mnt/persisteddata
 
   # Mount the EBS volume
-  # sudo mount /dev/xvdf /mnt/persisteddata
+  sudo mount /dev/xvdf /mnt/persisteddata
 
   # Copy the SSL certificate and key files
-  # sudo cp -r /mnt/persisteddata/letsencrypt/* /etc/letsencrypt/
+  sudo cp -r /mnt/persisteddata/letsencrypt/* /etc/letsencrypt/
 
   # Renew the SSL certificate if needed. Renew only if the certificate is close to expiration
   sudo certbot renew --webroot -w /home/ec2-user/certbot-web
@@ -205,7 +210,7 @@ resource "aws_instance" "ollama_server" {
     chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
     # Authenticate Docker to ECR if needed
-    # aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin <your_account_id>.dkr.ecr.us-west-2.amazonaws.com
+    # aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin ${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com
 
     # authenticate to Github Container Registry
     echo "var.github_token" | docker login ghcr.io -u "${var.github_username}" --password-stdin
@@ -215,7 +220,6 @@ resource "aws_instance" "ollama_server" {
 
     sudo mkdir -p /mnt/model_data
     # Associate the EBS volume with the instance
-
 
     # Mount the EBS volume
     sudo mount /dev/xvdf /mnt/model_data
